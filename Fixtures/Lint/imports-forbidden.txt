@@ -1,0 +1,40 @@
+import UIKit // expect: library_imports
+public import UIKit // expect: library_imports
+@preconcurrency import SwiftUI // expect: library_imports
+@_implementationOnly import Combine // expect: library_imports
+import struct SwiftUI.Color // expect: library_imports
+import os; import UIKit // expect: library_imports
+@_spi(Internal) import UIKit // expect: library_imports
+package import UIKit // expect: library_imports
+import UIKit.UIView // expect: library_imports
+import FoundationNetworking // expect: library_imports
+internal import UIKit // expect: library_imports
+fileprivate import UIKit // expect: library_imports
+private import UIKit // expect: library_imports
+@testable import UIKit // expect: library_imports
+@_exported import UIKit // expect: library_imports no_reexport
+@_exported import os // expect: no_reexport
+@_exported import DMCore // expect: no_reexport
+/* a comment */ import Foundation // expect: library_imports
+import /* a comment */ Foundation // expect: library_imports
+public /* a comment */ import Foundation // expect: library_imports
+@preconcurrency /* a comment */ import Foundation // expect: library_imports
+import `Foundation` // expect: library_imports
+import struct /* a comment */ Foundation.URL // expect: library_imports
+import struct `Foundation`.URL // expect: library_imports
+import // expect: library_imports
+    Foundation
+import os_signpost // expect: library_imports
+import osLog // expect: library_imports
+	import UIKit // expect: library_imports
+import  UIKit // expect: library_imports
+import class UIKit.UIView // expect: library_imports
+import func SwiftUI.withAnimation // expect: library_imports
+import UIKit // expect: library_imports
+import Foundation // expect: library_imports
+public import Foundation // expect: library_imports
+import struct Foundation.URL // expect: library_imports
+import DMCoreTesting // expect: library_imports
+#if canImport(UIKit)
+import UIKit // expect: library_imports
+#endif

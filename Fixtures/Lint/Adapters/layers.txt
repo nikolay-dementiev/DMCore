@@ -1,0 +1,7 @@
+// Linted as a file of the Adapters folder: the rules of the whole library reach it, and the Domain
+// rule does not, so os is fine here.
+import os
+import UIKit // expect: library_imports
+func terminate() {
+    fatalError("x") // expect: no_process_termination
+}

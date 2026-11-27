@@ -1,0 +1,32 @@
+// Linted as a file of the Domain folder: both import rules report these lines.
+import UIKit // expect: library_imports domain_no_imports
+public import UIKit // expect: library_imports domain_no_imports
+@preconcurrency import SwiftUI // expect: library_imports domain_no_imports
+@_implementationOnly import Combine // expect: library_imports domain_no_imports
+import struct SwiftUI.Color // expect: library_imports domain_no_imports
+import os; import UIKit // expect: library_imports domain_no_imports domain_no_imports
+@_spi(Internal) import UIKit // expect: library_imports domain_no_imports
+package import UIKit // expect: library_imports domain_no_imports
+import UIKit.UIView // expect: library_imports domain_no_imports
+import FoundationNetworking // expect: library_imports domain_no_imports
+internal import UIKit // expect: library_imports domain_no_imports
+fileprivate import UIKit // expect: library_imports domain_no_imports
+private import UIKit // expect: library_imports domain_no_imports
+@testable import UIKit // expect: library_imports domain_no_imports
+@_exported import UIKit // expect: library_imports domain_no_imports no_reexport
+/* a comment */ import UIKit // expect: library_imports domain_no_imports
+import `UIKit` // expect: library_imports domain_no_imports
+import os_signpost // expect: library_imports domain_no_imports
+import osLog // expect: library_imports domain_no_imports
+	import UIKit // expect: library_imports domain_no_imports
+import  UIKit // expect: library_imports domain_no_imports
+import class UIKit.UIView // expect: library_imports domain_no_imports
+import func SwiftUI.withAnimation // expect: library_imports domain_no_imports
+import UIKit // expect: library_imports domain_no_imports
+import Foundation // expect: library_imports domain_no_imports
+public import Foundation // expect: library_imports domain_no_imports
+import struct Foundation.URL // expect: library_imports domain_no_imports
+import DMCoreTesting // expect: library_imports domain_no_imports
+#if canImport(UIKit)
+import UIKit // expect: library_imports domain_no_imports
+#endif

@@ -1,0 +1,23 @@
+#if canImport(os)
+import os
+#endif
+import os
+public import os
+package import os
+internal import os
+import os.log
+import func os.os_log
+@preconcurrency import os
+import DMCore
+package import DMCore
+public import DMCore
+internal import DMCore
+// import UIKit
+/// import UIKit
+/*
+import UIKit
+*/
+let quoted = "import UIKit"
+let multiline = """
+import UIKit
+"""

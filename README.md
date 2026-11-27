@@ -2,6 +2,8 @@
 
 The small runtime core of the DM Swift SDK family.
 
+[![CI](https://github.com/nikolay-dementiev/DMCore/actions/workflows/ci.yml/badge.svg)](https://github.com/nikolay-dementiev/DMCore/actions/workflows/ci.yml)
+
 The package is under construction. Its first content will be a tracing kit: a narrow interface for
 performance signposts that the other libraries of the family will share. There is no release yet, so
 there is nothing to install.
@@ -17,6 +19,12 @@ there is nothing to install.
 - [DMDevKit](https://github.com/nikolay-dementiev/DMDevKit): the development and CI tooling of the
   libraries. It is not linked into apps.
 
-## License
+## Contributing, security, license
 
-MIT. See [LICENSE](LICENSE).
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to build, check and propose a change.
+- [ENGINEERING.md](ENGINEERING.md): the architecture and the compatibility policy.
+- [CHANGELOG.md](CHANGELOG.md): what changed.
+- [SECURITY.md](SECURITY.md): how to report a vulnerability.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): how people treat each other here.
+
+MIT license. See [LICENSE](LICENSE).

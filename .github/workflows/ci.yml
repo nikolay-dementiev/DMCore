@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Fridays. A new runner image or toolchain that breaks the package shows up within a week. The
+    # other repositories of the family run on other days: runs that start together queue behind
+    # each other.
+    - cron: "23 5 * * 5"
+
+permissions:
+  contents: read
+
+concurrency:
+  # The runs of a pull request share a group, so a new push supersedes the older run. Every other
+  # run, a merge, the weekly run or a manual run, has a group of its own: a group holds one pending
+  # run only, and a newer run would cancel it.
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Decides from the changed paths which jobs a pull request or a push to main needs
+  # (Scripts/ci-changes.sh). It runs on Linux, so it takes no macOS slot. The clone has its whole
+  # history: the diff against the base needs the merge base or the commit main had before the push,
+  # and a diff that cannot be made runs every job. The schedule and a manual run run every job.
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      light: ${{ steps.decide.outputs.light }}
+      heavy: ${{ steps.decide.outputs.heavy }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check the filter
+        run: Scripts/ci-changes.sh --self-test
+      - name: Decide which jobs run
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          # A pull request is diffed from its base, a push from the commit main had before it.
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          REF: ${{ github.ref }}
+        run: |
+          set -o pipefail
+          Scripts/ci-changes.sh "$EVENT" "$BASE" "$REF" | tee -a "$GITHUB_OUTPUT"
+
+  lint:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.light != 'skip' }}
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      - name: Lint
+        run: Scripts/lint.sh
+      # A rule that never matches reports nothing, so the fixtures prove that each one fires.
+      - name: Check that the lint rules fire
+        run: Scripts/check-lint-contract.sh
+      # Two runs at once on one checkout must not break each other while the tool is fetched.
+      - name: Check that the lint tool is fetched safely
+        run: Scripts/check-lint-tool.sh
+      # The scripts that forward to devkit are code that nothing else tests: one that dropped its
+      # arguments or its status would pass every other check. This step runs devkit itself and not
+      # Scripts/check-wrappers.sh: that wrapper is one of the scripts checked, and one that
+      # forwarded to another command would turn the step into that command and leave it green.
+      - name: Check that the wrappers forward to devkit
+        run: swift run --quiet --package-path Tools devkit check-wrappers
+
+  floor:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
+    # The oldest toolchain the manifest promises: swift-tools-version 6.0 is Xcode 16.0 to 16.2.
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+      # Tools/Package.swift is tools 6.0 like the package, and DMDevKit has to build with the oldest
+      # compiler that the manifest promises. The lint job runs the tools on a newer Xcode.
+      - name: Build the tools with Swift 6.0
+        run: swift run --quiet --package-path Tools devkit --version
+      # The package has no dependency, so the flag reaches only its own targets. The package has no
+      # test yet, so the test target is compiled and nothing is run.
+      - name: Build with Swift 6.0
+        run: |
+          swift --version
+          swift build --build-tests -Xswiftc -warnings-as-errors
+
+  # Every platform the manifest declares, built with a new toolchain. The package has no test yet,
+  # so these are builds: a test job that ran no test would pass whatever the code did.
+  platforms:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      - name: Build for macOS
+        run: swift build --build-tests -Xswiftc -warnings-as-errors
+      - name: Build for the iOS Simulator
+        run: |
+          xcodebuild build-for-testing \
+            -scheme DMCore-Package \
+            -destination 'generic/platform=iOS Simulator' \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+      - name: Build for the watchOS Simulator
+        run: |
+          xcodebuild build-for-testing \
+            -scheme DMCore-Package \
+            -destination 'generic/platform=watchOS Simulator' \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+      # Only the two device builds compile the device slices. They are Release builds, so code that
+      # only Release compiles is built too.
+      - name: Build for the iOS device SDK
+        run: |
+          xcodebuild build \
+            -scheme DMCore-Package \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+      # The watchOS slices include arm64_32, where Int and pointers are 32 bits wide.
+      - name: Build for the watchOS device SDK
+        run: |
+          xcodebuild build \
+            -scheme DMCore-Package \
+            -destination 'generic/platform=watchOS' \
+            -configuration Release \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
