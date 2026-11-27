@@ -100,45 +100,89 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
       # Tools/Package.swift is tools 6.0 like the package, and DMDevKit has to build with the oldest
-      # compiler that the manifest promises. The lint job runs the tools on a newer Xcode.
+      # compiler that the manifest promises. The other jobs run the tools on newer Xcode versions.
       - name: Build the tools with Swift 6.0
         run: swift run --quiet --package-path Tools devkit --version
-      # The package has no dependency, so the flag reaches only its own targets. The package has no
-      # test yet, so the test target is compiled and nothing is run.
-      - name: Build with Swift 6.0
+      # The package has no dependency, so the flag reaches only its own targets.
+      - name: Build and test with Swift 6.0
         run: |
           swift --version
-          swift build --build-tests -Xswiftc -warnings-as-errors
+          swift test -Xswiftc -warnings-as-errors
 
-  # Every platform the manifest declares, built with a new toolchain. The package has no test yet,
-  # so these are builds: a test job that ran no test would pass whatever the code did.
-  platforms:
+  # The tests on the Mac, with the coverage of the library.
+  test:
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
     runs-on: macos-26
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_26.6.app
-      - name: Build for macOS
-        run: swift build --build-tests -Xswiftc -warnings-as-errors
-      - name: Build for the iOS Simulator
+      - name: Test on the Mac
         run: |
-          xcodebuild build-for-testing \
+          xcodebuild test \
             -scheme DMCore-Package \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'platform=macOS' \
+            -enableCodeCoverage YES \
+            -resultBundlePath "$RUNNER_TEMP/DMCore-macOS.xcresult" \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
-      - name: Build for the watchOS Simulator
+      # A run that lost tests, or skipped them, passes too. So every test method of the test files
+      # must be in the result bundle, run and passed.
+      - name: Check the test count
+        run: Scripts/count-tests.sh --label macOS "$RUNNER_TEMP/DMCore-macOS.xcresult" 'Tests/DMCoreTests/*.swift'
+      - name: Export library coverage
+        run: Scripts/export-coverage.sh "$RUNNER_TEMP/DMCore-macOS.xcresult" DMCore "$RUNNER_TEMP/coverage.lcov"
+      - name: Keep the coverage report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: ${{ runner.temp }}/coverage.lcov
+          retention-days: 7
+
+  ios:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
+    name: ios (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The newest hosted image, Xcode and iOS runtime.
+          - name: iOS 26.5
+            runner: macos-26
+            xcode: "26.6"
+            device: iPhone 17
+            os: "26.5"
+          # The oldest hosted image and the oldest iOS runtime it offers.
+          - name: iOS 18.5
+            runner: macos-15
+            xcode: "16.4"
+            device: iPhone 16
+            os: "18.5"
+    env:
+      XCODE: ${{ matrix.xcode }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s "/Applications/Xcode_${XCODE}.app"
+      # The udid names the device, not a name and an OS: a hosted image can list a runtime with
+      # no device in it, and the script creates the device then.
+      - name: Prepare the simulator
+        env:
+          DEVICE: ${{ matrix.device }}
+          OS: ${{ matrix.os }}
         run: |
-          xcodebuild build-for-testing \
-            -scheme DMCore-Package \
-            -destination 'generic/platform=watchOS Simulator' \
-            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
-      # Only the two device builds compile the device slices. They are Release builds, so code that
-      # only Release compiles is built too.
+          udid="$(Scripts/prepare-simulator.sh "$DEVICE" "$OS")"
+          echo "SIMULATOR=$udid" >> "$GITHUB_ENV"
+      # The tests build the simulator slices in Debug. Only this step builds the device slices,
+      # and in Release, so code that only Release compiles is built too.
       - name: Build for the iOS device SDK
         run: |
           xcodebuild build \
@@ -146,7 +190,61 @@ jobs:
             -destination 'generic/platform=iOS' \
             -configuration Release \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
-      # The watchOS slices include arm64_32, where Int and pointers are 32 bits wide.
+      - name: Test
+        run: |
+          xcodebuild test \
+            -scheme DMCore-Package \
+            -destination "platform=iOS Simulator,id=$SIMULATOR" \
+            -resultBundlePath "$RUNNER_TEMP/DMCore-iOS.xcresult" \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+      - name: Check the test count
+        run: Scripts/count-tests.sh --label iOS "$RUNNER_TEMP/DMCore-iOS.xcresult" 'Tests/DMCoreTests/*.swift'
+      - name: Upload the result bundle
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: xcresult-ios-${{ matrix.runner }}
+          path: ${{ runner.temp }}/DMCore-iOS.xcresult
+          retention-days: 7
+
+  watchos:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
+    name: watchos (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The newest hosted image, Xcode and watchOS runtime.
+          - name: watchOS 26.5
+            runner: macos-26
+            xcode: "26.6"
+            device: Apple Watch Series 11 (46mm)
+            os: "26.5"
+          # The oldest hosted image and the oldest watchOS runtime it offers.
+          - name: watchOS 11.5
+            runner: macos-15
+            xcode: "16.4"
+            device: Apple Watch Series 10 (46mm)
+            os: "11.5"
+    env:
+      XCODE: ${{ matrix.xcode }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s "/Applications/Xcode_${XCODE}.app"
+      - name: Prepare the simulator
+        env:
+          DEVICE: ${{ matrix.device }}
+          OS: ${{ matrix.os }}
+        run: |
+          udid="$(Scripts/prepare-simulator.sh "$DEVICE" "$OS" watchOS)"
+          echo "SIMULATOR=$udid" >> "$GITHUB_ENV"
+      # The device slices include arm64_32, where Int and pointers are 32 bits wide.
       - name: Build for the watchOS device SDK
         run: |
           xcodebuild build \
@@ -154,3 +252,35 @@ jobs:
             -destination 'generic/platform=watchOS' \
             -configuration Release \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+      - name: Test
+        run: |
+          xcodebuild test \
+            -scheme DMCore-Package \
+            -destination "platform=watchOS Simulator,id=$SIMULATOR" \
+            -resultBundlePath "$RUNNER_TEMP/DMCore-watchOS.xcresult" \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+      - name: Check the test count
+        run: Scripts/count-tests.sh --label watchOS "$RUNNER_TEMP/DMCore-watchOS.xcresult" 'Tests/DMCoreTests/*.swift'
+      - name: Upload the result bundle
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: xcresult-watchos-${{ matrix.runner }}
+          path: ${{ runner.temp }}/DMCore-watchOS.xcresult
+          retention-days: 7
+
+  thread-sanitizer:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
+    # An interval ends on whatever thread finishes the work. The suite runs once more under the
+    # Thread Sanitizer, on the Mac, where it is fastest.
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      - name: Test with the Thread Sanitizer
+        run: swift test --sanitize=thread -Xswiftc -warnings-as-errors
