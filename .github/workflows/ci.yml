@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # The release workflow runs these jobs on a version tag.
+  workflow_call:
   schedule:
     # Fridays. A new runner image or toolchain that breaks the package shows up within a week. The
     # other repositories of the family run on other days: runs that start together queue behind
@@ -25,7 +27,8 @@ jobs:
   # Decides from the changed paths which jobs a pull request or a push to main needs
   # (Scripts/ci-changes.sh). It runs on Linux, so it takes no macOS slot. The clone has its whole
   # history: the diff against the base needs the merge base or the commit main had before the push,
-  # and a diff that cannot be made runs every job. The schedule and a manual run run every job.
+  # and a diff that cannot be made runs every job. The schedule, a manual run and a release run
+  # every job.
   changes:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
