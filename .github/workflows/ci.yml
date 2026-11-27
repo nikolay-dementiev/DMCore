@@ -126,8 +126,16 @@ jobs:
             -scheme DMCore-Package \
             -destination 'generic/platform=watchOS Simulator' \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
-      # Only this step builds the device slices, which include arm64_32, where Int and pointers are
-      # 32 bits wide. It is a Release build, so code that only Release compiles is built too.
+      # Only the two device builds compile code that a Simulator build leaves out. They are Release
+      # builds, so code that only Release compiles is built too.
+      - name: Build for the iOS device SDK
+        run: |
+          xcodebuild build \
+            -scheme DMCore-Package \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+      # The watchOS slices include arm64_32, where Int and pointers are 32 bits wide.
       - name: Build for the watchOS device SDK
         run: |
           xcodebuild build \

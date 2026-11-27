@@ -13,11 +13,12 @@ errors:
 swift build --build-tests -Xswiftc -warnings-as-errors
 ```
 
-For the iOS and watchOS Simulators, and for a watchOS device:
+For the iOS and watchOS Simulators, and for an iOS and a watchOS device:
 
 ```bash
 xcodebuild build-for-testing -scheme DMCore-Package -destination 'generic/platform=iOS Simulator' SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
 xcodebuild build-for-testing -scheme DMCore-Package -destination 'generic/platform=watchOS Simulator' SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+xcodebuild build -scheme DMCore-Package -destination 'generic/platform=iOS' -configuration Release SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
 xcodebuild build -scheme DMCore-Package -destination 'generic/platform=watchOS' -configuration Release SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
 ```
 

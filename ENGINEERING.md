@@ -87,7 +87,8 @@ the first public declaration, and CI compares the interface with it from then on
   needs Xcode 16.0 or later. `ExistentialAny` is on in every target.
 - The declared platforms are iOS 17.0, watchOS 10.0 and macOS 13.0.
 - `.github/workflows/ci.yml` is the place that says what CI runs. The `floor` job builds with
-  Swift 6.0. The package has no test yet, so CI builds it and runs no test: no OS version is tested.
+  Swift 6.0 for the Mac only, so code that only iOS or watchOS compiles is not built with that
+  compiler. The package has no test yet, so CI builds it and runs no test: no OS version is tested.
 - XCTest is the test framework. Another one comes only by the maintainer's decision.
 
 ## Where the rest lives
