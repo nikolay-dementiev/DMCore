@@ -9,7 +9,7 @@ let package = Package(
     platforms: [
         .iOS(.v17),
         .watchOS(.v10),
-        // The package builds on the Mac too. The floor is for the planned tracing kit:
+        // The package builds on the Mac too. The floor is what the tracing kit needs:
         // OSSignposter needs macOS 12, OSAllocatedUnfairLock needs macOS 13.
         .macOS(.v13),
     ],

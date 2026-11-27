@@ -5,8 +5,7 @@ what the package is made of, and which toolchains and platforms it promises.
 [CONTRIBUTING.md](CONTRIBUTING.md) has the commands, the checks CI runs and the rules for tests.
 This file does not repeat them.
 
-DMCore has no release yet and declares nothing yet. The rules below apply from the first release,
-and new code is written to them now.
+The rules apply from version 1.0.0.
 
 ## Public API and behaviour
 
@@ -47,8 +46,13 @@ No compiler deprecation attribute ships within a major version. Its warning appe
 the symbol and fails a consumer that builds with warnings as errors. A symbol is retired in the
 documentation instead: the replacement and a migration example say what to use.
 
-Who checks. The review does. The repository holds no interface baseline yet; one is committed with
-the first public declaration, and CI compares the interface with it from then on.
+Who checks. `Scripts/check-api.sh` compares the public interface of `DMCore` with the committed
+baseline `Fixtures/API/public-interface.txt`, and CI runs it: a change of the interface updates the
+baseline in the same commit. It covers `DMCore` only. The interface of `DMCoreTesting` is held by
+compilation: `Scripts/check-consumer.sh` builds `Fixtures/Consumer`, which names its public
+declarations. `Scripts/check-release.sh` requires a new major version when the baseline lost or
+changed a line since the release before. The review classifies added lines and behaviour, which no
+script sees.
 
 ## The package
 
@@ -59,9 +63,14 @@ the first public declaration, and CI compares the interface with it from then on
   embed one more framework.
 - **No dependency.** The manifest declares none, and adding one needs the maintainer's approval.
 - **No shared mutable state.** No global mutable variable, no singleton and no Objective-C class.
+- **Concurrency is checked by the compiler.** `DMCore` declares no `@unchecked Sendable`: state
+  that threads share is behind a lock that the compiler knows to be safe, such as
+  `OSAllocatedUnfairLock`, or in an actor. The review checks this.
+- **One module conforms to `Tracing`.** Only `DMCore` creates a `TraceInterval`, so an adapter of
+  the interface is added here, and a new requirement cannot break a conformer elsewhere.
 - **Layers.** Inside `Sources/DMCore`, `Domain/` holds the interfaces and plain values and imports
-  nothing, and `Adapters/` holds the code that talks to a system framework. The folders arrive with
-  their first files. Dependencies point inward: a Domain type never names an adapter.
+  nothing, and `Adapters/` holds the code that talks to a system framework. Dependencies point
+  inward: a Domain type never names an adapter.
 - **Imports.** The library imports `os` only, and `DMCoreTesting` also `DMCore`. No import is
   re-exported with `@_exported`: it would reach every file of the module, `Domain/` included, and
   every consumer. `Scripts/lint.sh` enforces this with the custom rules `library_imports`,
@@ -86,9 +95,10 @@ the first public declaration, and CI compares the interface with it from then on
 - The manifest declares `swift-tools-version: 6.0` and the Swift 6 language mode, so the package
   needs Xcode 16.0 or later. `ExistentialAny` is on in every target.
 - The declared platforms are iOS 17.0, watchOS 10.0 and macOS 13.0.
-- `.github/workflows/ci.yml` is the place that says what CI runs. The `floor` job builds with
-  Swift 6.0 for the Mac only, so code that only iOS or watchOS compiles is not built with that
-  compiler. The package has no test yet, so CI builds it and runs no test: no OS version is tested.
+- `.github/workflows/ci.yml` is the place that says what CI runs. The `floor` job builds and tests
+  with Swift 6.0 on the Mac only, so code that only iOS or watchOS compiles is not built with that
+  compiler. The tests also run on the iOS Simulator at 26.5 and 18.5 and on the watchOS Simulator
+  at 26.5 and 11.5: no run covers iOS 17 or watchOS 10, the oldest versions the manifest declares.
 - XCTest is the test framework. Another one comes only by the maintainer's decision.
 
 ## Where the rest lives
@@ -97,4 +107,4 @@ the first public declaration, and CI compares the interface with it from then on
   commits.
 - [Documentation/Review/README.md](Documentation/Review/README.md): how a change is reviewed.
 - [CHANGELOG.md](CHANGELOG.md): the history of the releases.
-- [README.md](README.md): what the package is.
+- [README.md](README.md): what the package is and how to add it.

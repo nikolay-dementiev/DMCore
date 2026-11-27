@@ -2,8 +2,9 @@
 
 ## How it was tested
 
-- [ ] `swift build --build-tests` and the `xcodebuild` builds of `CONTRIBUTING.md`, without a warning
-- [ ] `Scripts/lint.sh` and `Scripts/check-lint-contract.sh`
+- [ ] `swift test` and the `xcodebuild` runs of `CONTRIBUTING.md`, without a warning
+- [ ] `Scripts/lint.sh`, `Scripts/check-lint-contract.sh`, `Scripts/check-api.sh` and
+      `Scripts/check-consumer.sh`
 - [ ] Every new test fails without the change
 
 ## Public API and behaviour

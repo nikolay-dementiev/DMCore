@@ -23,8 +23,9 @@ and states none of its own. Report each finding in the format of
   implementation whose name a protocol extension already declares, or that a member of a conformer
   would capture. (ENGINEERING.md, "A new protocol requirement with a default implementation is
   additive only")
-- A first public declaration without a committed baseline of the interface and a CI check that
-  compares with it. (ENGINEERING.md, "one is committed with the first public declaration")
+- A change of the public interface without the baseline updated in the same commit, or a change of
+  `DMCoreTesting` that `Fixtures/Consumer` does not hold. (ENGINEERING.md, "a change of the
+  interface updates the")
 - A compiler deprecation attribute within a major version.
   (ENGINEERING.md, "No compiler deprecation attribute")
 - A change that people using the package can notice, with no entry in `CHANGELOG.md`.
