@@ -24,11 +24,12 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_26.6.app
       - name: Check that the tag and the changelog agree
         run: Scripts/check-release.sh "$GITHUB_REF_NAME"
-      # A version tag on a branch that was never merged would release unreviewed code.
-      - name: Check that the tagged commit is on main
+      # Only the first-parent history holds the commits that main has been at. A commit of a branch
+      # that was merged is an ancestor of main too, and is not what the merge made.
+      - name: Check that main has been at the tagged commit
         run: |
-          if ! git merge-base --is-ancestor HEAD origin/main; then
-            echo "The tag $GITHUB_REF_NAME is on a commit that main does not contain." >&2
+          if ! git rev-list --first-parent origin/main | grep -x "$(git rev-parse HEAD)" > /dev/null; then
+            echo "The tag $GITHUB_REF_NAME is on a commit that main has never been at." >&2
             exit 1
           fi
 

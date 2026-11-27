@@ -116,7 +116,8 @@ goes to the repository root, which `devkit` finds with git, so run them in a clo
 
 ## Releases
 
-A release is a tag that is the version itself, such as `1.0.0`, on a commit of `main`.
+A release is a tag that is the version itself, such as `1.0.0`, on a commit that `main` has been at,
+such as the merge commit of a pull request. A commit of the merged branch is refused.
 
 1. The newest heading of `CHANGELOG.md` is `## [<version>] - <date>`, and the table of `SECURITY.md`
    has a row for the version.
