@@ -159,7 +159,8 @@ check_job_table() {
             continue
         fi
         block="$(job_block "$workflow" "$job")"
-        if ! printf '%s\n' "$block" | grep -qF "if: \${{ !cancelled() && needs.changes.outputs.$group != 'skip' }}"; then
+        # The whole line: a condition that is left in a comment does not count.
+        if ! printf '%s\n' "$block" | grep -qxF "    if: \${{ !cancelled() && needs.changes.outputs.$group != 'skip' }}"; then
             echo "ci-changes self-test: job '$job' does not carry if: \${{ !cancelled() && needs.changes.outputs.$group != 'skip' }}" >&2
             failures=$((failures + 1))
         fi
@@ -175,11 +176,17 @@ check_job_table() {
 
 # A concurrency group holds one pending run only: a newer run of the group cancels it, even with
 # cancel-in-progress false. A push to main that skips jobs would so replace a pending one that runs
-# them. Only the runs of one pull request share a group.
+# them. Only the runs of one pull request share a group, and no job sets a group of its own.
 check_concurrency() {
+    local workflow="$ROOT/.github/workflows/ci.yml" blocks
     local group="group: ci-\${{ github.workflow }}-\${{ github.event_name == 'pull_request' && github.ref || github.run_id }}"
-    if ! grep -qxF "  $group" "$ROOT/.github/workflows/ci.yml"; then
+    if ! grep -qxF "  $group" "$workflow"; then
         echo "ci-changes self-test: the concurrency group of ci.yml is not '$group'" >&2
+        failures=$((failures + 1))
+    fi
+    blocks="$(grep -cE '^[[:space:]]*concurrency:' "$workflow" || true)"
+    if [ "$blocks" != 1 ]; then
+        echo "ci-changes self-test: ci.yml has $blocks concurrency keys, not the one of the workflow" >&2
         failures=$((failures + 1))
     fi
 }
