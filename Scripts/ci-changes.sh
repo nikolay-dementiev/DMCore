@@ -175,6 +175,17 @@ check_job_table() {
     done
 }
 
+# A concurrency group holds one pending run only: a newer run of the group cancels it, even with
+# cancel-in-progress false. A push to main that skips jobs would so replace a pending one that runs
+# them. Only the runs of one pull request share a group.
+check_concurrency() {
+    local group="group: ci-\${{ github.workflow }}-\${{ github.event_name == 'pull_request' && github.ref || github.run_id }}"
+    if ! grep -qxF "  $group" "$ROOT/.github/workflows/ci.yml"; then
+        echo "ci-changes self-test: the concurrency group of ci.yml is not '$group'" >&2
+        failures=$((failures + 1))
+    fi
+}
+
 # Runs the real diff on a scratch repository: a source file moved into Documentation, and a document
 # whose name is not ASCII.
 check_real_diff() {
@@ -253,6 +264,7 @@ self_test() {
     expect "a push with no ref runs every job" push "README.md" "$all" ""
     check_job_reading
     check_job_table
+    check_concurrency
     check_real_diff
     if [ "$failures" -ne 0 ]; then
         echo "ci-changes self-test: $failures failed." >&2
