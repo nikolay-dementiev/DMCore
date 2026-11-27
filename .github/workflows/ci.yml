@@ -75,6 +75,17 @@ jobs:
       # forwarded to another command would turn the step into that command and leave it green.
       - name: Check that the wrappers forward to devkit
         run: swift run --quiet --package-path Tools devkit check-wrappers
+      # The analyzer rules, unused_import among them, read the compiler invocations of a full build.
+      - name: Build the package for the analyzer
+        run: |
+          xcodebuild build-for-testing \
+            -scheme DMCore-Package \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            > "$RUNNER_TEMP/build.log" 2>&1 \
+            || { tail -50 "$RUNNER_TEMP/build.log"; exit 1; }
+      - name: Run the analyzer rules
+        run: Scripts/lint.sh --analyze "$RUNNER_TEMP/build.log"
 
   floor:
     needs: changes
