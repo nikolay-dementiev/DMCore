@@ -18,9 +18,7 @@
 #
 # Only a pull request and a push to refs/heads/main are filtered. A push is diffed from the commit
 # main had before it (the base) to HEAD; a base that is empty, all zeros or not in the clone runs
-# everything. Every other run starts everything: schedule, workflow_dispatch, workflow_call, a push to
-# another branch and a push of a version tag. A workflow that calls this one passes its own event, so
-# a call from a push of a tag reads push with a tag ref and a zero base.
+# everything. Every other run starts everything, whatever its event or its ref.
 
 set -euo pipefail
 
@@ -211,7 +209,7 @@ check_real_diff() {
     git -C "$dir" commit -q -m document
     expect_diff "a document with a non-ASCII name skips the heavy jobs" "$dir" pull_request "$base" refs/pull/1/merge "light=run heavy=skip"
     expect_diff "a push to main of a document skips the heavy jobs" "$dir" push "$base" refs/heads/main "light=run heavy=skip"
-    expect_diff "a push of a release tag runs every job for the same document" "$dir" push "$base" refs/tags/1.2.0 "light=run heavy=run"
+    expect_diff "a push of a tag runs every job for the same document" "$dir" push "$base" refs/tags/1.2.0 "light=run heavy=run"
     expect_diff "a push with a base of zeros runs every job" "$dir" push "0000000000000000000000000000000000000000" refs/heads/main "light=run heavy=run"
     expect_diff "a push with an empty base runs every job" "$dir" push "" refs/heads/main "light=run heavy=run"
     expect_diff "a push with a base that is not in the clone runs every job" "$dir" push "1111111111111111111111111111111111111111" refs/heads/main "light=run heavy=run"
@@ -258,8 +256,8 @@ self_test() {
     expect "a push to main with the inert file alone skips every job" push ".coderabbit.yaml" "$none"
     expect "a push to main with a README and a source file runs every job" push $'README.md\nSources/DMCore/X.swift' "$all"
     expect "a push to main with an empty list runs every job" push "" "$all"
-    expect "a push of a release tag runs every job for a README" push "README.md" "$all" refs/tags/1.2.0
-    expect "a push of a release tag runs every job for the inert file" push ".coderabbit.yaml" "$all" refs/tags/1.2.0
+    expect "a push of a tag runs every job for a README" push "README.md" "$all" refs/tags/1.2.0
+    expect "a push of a tag runs every job for the inert file" push ".coderabbit.yaml" "$all" refs/tags/1.2.0
     expect "a push to another branch runs every job" push "README.md" "$all" refs/heads/other
     expect "a push with no ref runs every job" push "README.md" "$all" ""
     check_job_reading

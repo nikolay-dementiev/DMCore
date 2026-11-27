@@ -37,11 +37,12 @@ turn the check into another one.
 | `Scripts/check-lint-contract.sh` | that the lint rules fire: it lints the fixtures of `Fixtures/Lint` where their folder says (the root and the subfolders as files of the library, `Outside/` outside it) and compares the diagnostics of the rules named in `devkit.conf` with the ones each line expects |
 | `Scripts/check-lint-tool.sh` | that the helper which fetches SwiftLint is safe to run twice at once, with a fake archive and no network |
 | `Scripts/check-wrappers.sh` | that the scripts which `WRAPPERS` in `devkit.conf` lists forward to `devkit` faithfully: command, arguments, directory, exit status and streams |
-| `Scripts/ci-changes.sh --self-test` | the filter that decides which CI jobs a change needs, and that every job of the workflow is in one of its groups |
+| `Scripts/ci-changes.sh --self-test` | the filter that decides which CI jobs a change needs, that every job of the workflow but the filter's own, `changes`, is in one of its groups, and that only the runs of one pull request share a concurrency group |
 
 CI skips the build jobs of a pull request, or of a push to `main`, that changes only documents, and
 skips every job but the filter for a change of `.coderabbit.yaml` alone. A weekly run and a manual
-run start every job.
+run start every job. A push to `main` is judged by its own changes: after a push whose run failed, a
+later push of documents alone can be green although the failure is still there.
 
 The checks run code that the branch contains: Swift Package Manager evaluates `Package.swift` and
 `Tools/Package.swift`, and `devkit.conf` is shell code that runs with your rights. Before you run the

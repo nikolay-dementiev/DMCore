@@ -9,8 +9,8 @@ let package = Package(
     platforms: [
         .iOS(.v17),
         .watchOS(.v10),
-        // The package is also built and tested on the Mac: OSSignposter needs macOS 12,
-        // OSAllocatedUnfairLock needs macOS 13.
+        // The package builds on the Mac too. The floor is for the planned tracing kit:
+        // OSSignposter needs macOS 12, OSAllocatedUnfairLock needs macOS 13.
         .macOS(.v13),
     ],
     products: [

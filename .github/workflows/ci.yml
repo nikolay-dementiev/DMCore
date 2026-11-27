@@ -89,7 +89,7 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
       # Tools/Package.swift is tools 6.0 like the package, and DMDevKit has to build with the oldest
-      # compiler that the manifest promises. The other jobs run the tools on newer Xcode versions.
+      # compiler that the manifest promises. The lint job runs the tools on a newer Xcode.
       - name: Build the tools with Swift 6.0
         run: swift run --quiet --package-path Tools devkit --version
       # The package has no dependency, so the flag reaches only its own targets. The package has no
