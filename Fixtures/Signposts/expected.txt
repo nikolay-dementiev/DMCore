@@ -1,0 +1,10 @@
+Begin | first | #1 | interval | load: start
+Event | first | - | event | step: -9223372036854775808
+Event | first | - | event | tick
+End | first | #1 | interval | load: done
+Begin | first | #2 | interval | outer
+Begin | first | #3 | interval | inner: 2
+End | first | #2 | interval | outer: 1
+End | first | #3 | interval | inner
+Begin | first | #4 | interval | owned
+End | first | #4 | interval | owned: 7
