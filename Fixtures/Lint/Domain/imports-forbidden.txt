@@ -13,7 +13,9 @@ internal import UIKit // expect: library_imports domain_no_imports
 fileprivate import UIKit // expect: library_imports domain_no_imports
 private import UIKit // expect: library_imports domain_no_imports
 @testable import UIKit // expect: library_imports domain_no_imports
-@_exported import UIKit // expect: library_imports domain_no_imports
+@_exported import UIKit // expect: library_imports domain_no_imports no_reexport
+/* a comment */ import UIKit // expect: library_imports domain_no_imports
+import `UIKit` // expect: library_imports domain_no_imports
 import os_signpost // expect: library_imports domain_no_imports
 import osLog // expect: library_imports domain_no_imports
 	import UIKit // expect: library_imports domain_no_imports

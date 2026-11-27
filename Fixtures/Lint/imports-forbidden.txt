@@ -12,7 +12,18 @@ internal import UIKit // expect: library_imports
 fileprivate import UIKit // expect: library_imports
 private import UIKit // expect: library_imports
 @testable import UIKit // expect: library_imports
-@_exported import UIKit // expect: library_imports
+@_exported import UIKit // expect: library_imports no_reexport
+@_exported import os // expect: no_reexport
+@_exported import DMCore // expect: no_reexport
+/* a comment */ import Foundation // expect: library_imports
+import /* a comment */ Foundation // expect: library_imports
+public /* a comment */ import Foundation // expect: library_imports
+@preconcurrency /* a comment */ import Foundation // expect: library_imports
+import `Foundation` // expect: library_imports
+import struct /* a comment */ Foundation.URL // expect: library_imports
+import struct `Foundation`.URL // expect: library_imports
+import // expect: library_imports
+    Foundation
 import os_signpost // expect: library_imports
 import osLog // expect: library_imports
 	import UIKit // expect: library_imports

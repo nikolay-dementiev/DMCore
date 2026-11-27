@@ -7,12 +7,12 @@ internal import os // expect: domain_no_imports
 import os.log // expect: domain_no_imports
 import func os.os_log // expect: domain_no_imports
 @preconcurrency import os // expect: domain_no_imports
-@_exported import os // expect: domain_no_imports
+@_exported import os // expect: domain_no_imports no_reexport
 import DMCore // expect: domain_no_imports
 package import DMCore // expect: domain_no_imports
 public import DMCore // expect: domain_no_imports
 internal import DMCore // expect: domain_no_imports
-@_exported import DMCore // expect: domain_no_imports
+@_exported import DMCore // expect: domain_no_imports no_reexport
 #if canImport(os)
 import os // expect: domain_no_imports
 #endif
