@@ -1,5 +1,5 @@
-// swift-tools-version: 6.0
-// 6.0 is the oldest tools version among the libraries of the family that will use this package.
+// swift-tools-version: 6.2
+// Swift 6.2, which Xcode 26 brings, is the oldest toolchain the package supports.
 import PackageDescription
 
 let swiftSettings: [SwiftSetting] = [.enableUpcomingFeature("ExistentialAny")]

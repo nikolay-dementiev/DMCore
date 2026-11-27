@@ -90,28 +90,6 @@ jobs:
       - name: Run the analyzer rules
         run: Scripts/lint.sh --analyze "$RUNNER_TEMP/build.log"
 
-  floor:
-    needs: changes
-    if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
-    # The oldest toolchain the manifest promises: swift-tools-version 6.0 is Xcode 16.0 to 16.2.
-    runs-on: macos-15
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app
-      # Tools/Package.swift is tools 6.0 like the package, and DMDevKit has to build with the oldest
-      # compiler that the manifest promises. The other jobs run the tools on newer Xcode versions.
-      - name: Build the tools with Swift 6.0
-        run: swift run --quiet --package-path Tools devkit --version
-      # The package has no dependency, so the flag reaches only its own targets.
-      - name: Build and test with Swift 6.0
-        run: |
-          swift --version
-          swift test -Xswiftc -warnings-as-errors
-
   # The tests on the Mac, with the coverage of the library.
   test:
     needs: changes
@@ -161,12 +139,6 @@ jobs:
             xcode: "26.6"
             device: iPhone 17
             os: "26.5"
-          # The oldest hosted image and the oldest iOS runtime it offers.
-          - name: iOS 18.5
-            runner: macos-15
-            xcode: "16.4"
-            device: iPhone 16
-            os: "18.5"
     env:
       XCODE: ${{ matrix.xcode }}
     steps:
@@ -226,12 +198,6 @@ jobs:
             xcode: "26.6"
             device: Apple Watch Series 11 (46mm)
             os: "26.5"
-          # The oldest hosted image and the oldest watchOS runtime it offers.
-          - name: watchOS 11.5
-            runner: macos-15
-            xcode: "16.4"
-            device: Apple Watch Series 10 (46mm)
-            os: "11.5"
     env:
       XCODE: ${{ matrix.xcode }}
     steps:

@@ -6,7 +6,7 @@ policy.
 
 ## Build
 
-You need Xcode 16.0 or later (Swift 6.0). CI runs Xcode 16.2, 16.4 and 26.6. Build and test on the
+You need Xcode 26 or later (Swift 6.2). CI runs Xcode 26.6. Build and test on the
 Mac, with warnings as errors, and once more under the Thread Sanitizer:
 
 ```bash
@@ -60,7 +60,7 @@ errors. One script, `Scripts/check-signposts.sh`, CI does not run: see [Tests](#
 | `Scripts/ci-changes.sh --self-test` | the filter that decides which CI jobs a change needs, that every job of the workflow but the filter's own, `changes`, is in one of its groups, and that only the runs of one pull request share a concurrency group |
 
 For a pull request, or a push to `main`, that changes only documents, CI skips the jobs that build
-and test the code for each platform and toolchain: `floor`, `test`, `ios`, `watchos` and
+and test the code for each platform: `test`, `ios`, `watchos` and
 `thread-sanitizer`. For a change of `.coderabbit.yaml` alone it skips every job but the filter. A
 weekly run, a manual run and a release start every job. A push to `main` is judged by its own changes: after a push whose run failed, a
 later push of documents alone can be green although the failure is still there.

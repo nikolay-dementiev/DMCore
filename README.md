@@ -9,7 +9,8 @@ tool about its own work through `Tracing`: it begins and ends intervals and emit
 `SystemTracing` records them as signposts of the system, and `NoTracing` records nothing. A test
 passes `TracingSpy`, of the product `DMCoreTesting`, and reads back what the library did.
 
-It needs iOS 17, watchOS 10 or macOS 13, and Xcode 16.0 or later. It has no dependency.
+It needs iOS 17, watchOS 10 or macOS 13, and Swift 6.2, which Xcode 26 or later brings. It has no
+dependency.
 
 ## Installation
 
@@ -17,7 +18,7 @@ DMCore is a Swift package. Add it and its product to your `Package.swift`, and t
 `DMCoreTesting` to the target that tests your code:
 
 ```swift
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 import PackageDescription
 
 let package = Package(

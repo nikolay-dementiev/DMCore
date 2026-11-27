@@ -67,8 +67,7 @@ script sees.
 - **No shared mutable state.** No global mutable variable, no singleton and no Objective-C class.
 - **Concurrency is checked by the compiler.** `DMCore` declares no `@unchecked Sendable`: state
   that threads share is behind a lock that the compiler knows to be safe, such as
-  `OSAllocatedUnfairLock`, or in an actor. An unchecked call of such a lock carries a comment that
-  says why it is safe. The review checks this.
+  `OSAllocatedUnfairLock`, or in an actor. The review checks this.
 - **Only `DMCore` creates a `TraceInterval`.** A conformer of `Tracing` outside this package can
   only hand on the token of a value of `DMCore`, so an adapter that keeps its own state for an
   interval is added here. Such conformers can exist, so a new requirement without a default
@@ -97,13 +96,13 @@ script sees.
 
 ## Toolchain and platforms
 
-- The manifest declares `swift-tools-version: 6.0` and the Swift 6 language mode, so the package
-  needs Xcode 16.0 or later. `ExistentialAny` is on in every target.
+- The manifest declares `swift-tools-version: 6.2` and the Swift 6 language mode, so the package
+  needs Xcode 26.0 or later. `ExistentialAny` is on in every target.
 - The declared platforms are iOS 17.0, watchOS 10.0 and macOS 13.0.
-- `.github/workflows/ci.yml` is the place that says what CI runs. The `floor` job builds and tests
-  with Swift 6.0 on the Mac only, so code that only iOS or watchOS compiles is not built with that
-  compiler. The tests also run on the iOS Simulator at 26.5 and 18.5 and on the watchOS Simulator
-  at 26.5 and 11.5: no run covers iOS 17 or watchOS 10, the oldest versions the manifest declares.
+- `.github/workflows/ci.yml` is the place that says what CI runs. Every job that compiles uses
+  Xcode 26.6, so no run covers Swift 6.2 itself, the oldest compiler the manifest admits. The tests
+  also run on the iOS Simulator and the watchOS Simulator at 26.5: no run covers iOS 17 or
+  watchOS 10, the oldest versions the manifest declares.
 - XCTest is the test framework. Another one comes only by the maintainer's decision.
 
 ## Where the rest lives

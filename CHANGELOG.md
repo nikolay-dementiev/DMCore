@@ -10,7 +10,7 @@ The first release: the tracing kit of the family.
 ### Added
 
 - The products `DMCore` and `DMCoreTesting`, for iOS 17, watchOS 10 and macOS 13, built with
-  Swift 6.0 or later, with no dependency.
+  Swift 6.2 or later (Xcode 26 or later), with no dependency.
 - `Tracing`, an interface for performance intervals and events, with `TraceDetail`, a detail that is
   nothing, a number or a constant label, and `TraceInterval`, the token of an open interval, which
   crosses threads and suspension points.
