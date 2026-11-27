@@ -1,0 +1,7 @@
+// expect: cannot find 'TracingSpy' in scope
+// DMCore does not export the test double.
+package import DMCore
+
+func testDouble() -> any Tracing {
+    TracingSpy()
+}

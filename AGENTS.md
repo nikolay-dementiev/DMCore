@@ -9,8 +9,8 @@ details are in [ENGINEERING.md](ENGINEERING.md) and [CONTRIBUTING.md](CONTRIBUTI
 - Add no dependency without the maintainer's approval.
 - Test through the public API, with no `@testable import`. Every new test must be able to fail:
   name the change to the code that it fails on.
-- Keep the build free of warnings, and run `Scripts/lint.sh` and
-  `Scripts/check-lint-contract.sh` before a pull request.
+- Keep the build free of warnings, and run `Scripts/lint.sh`, `Scripts/check-lint-contract.sh`,
+  `Scripts/check-api.sh` and `Scripts/check-consumer.sh` before a pull request.
 - The library never stops its host: no `fatalError`, no force unwrap, no `try!` and no `as!`.
 - One topic per commit, with a conventional prefix: `test:`, `fix:`, `feat:`, `refactor:`,
   `docs:`, `chore:`, `ci:` or `perf:`.

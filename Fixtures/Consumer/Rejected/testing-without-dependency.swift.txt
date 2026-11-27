@@ -1,0 +1,9 @@
+// expect: no such module 'DMCoreTesting'
+// expect: unable to resolve module dependency: 'DMCoreTesting'
+// A target that depends on DMCore alone cannot import the product of the test double. Each of the
+// two lines above is the wording of one build system of SwiftPM.
+package import DMCoreTesting
+
+func importedTestDouble() -> TracingSpy {
+    TracingSpy()
+}

@@ -1,0 +1,13 @@
+// expect: 'TraceInterval' initializer is inaccessible due to 'package' protection level
+// Only DMCore creates the token of an interval: a conformer of another package cannot make one.
+package import DMCore
+
+struct OutsideTracing: Tracing {
+    func beginInterval(_ name: StaticString, _ detail: TraceDetail) -> TraceInterval {
+        TraceInterval(name: name, handle: nil)
+    }
+
+    func endInterval(_ interval: TraceInterval, _ detail: TraceDetail) {}
+
+    func emitEvent(_ name: StaticString, _ detail: TraceDetail) {}
+}

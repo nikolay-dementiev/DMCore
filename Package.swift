@@ -1,5 +1,5 @@
-// swift-tools-version: 6.0
-// 6.0 is the oldest tools version among the libraries of the family that will use this package.
+// swift-tools-version: 6.2
+// Swift 6.2, which Xcode 26 brings, is the oldest toolchain the package supports.
 import PackageDescription
 
 let swiftSettings: [SwiftSetting] = [.enableUpcomingFeature("ExistentialAny")]
@@ -9,7 +9,7 @@ let package = Package(
     platforms: [
         .iOS(.v17),
         .watchOS(.v10),
-        // The package builds on the Mac too. The floor is for the planned tracing kit:
+        // The package builds on the Mac too. The floor is what the tracing kit needs:
         // OSSignposter needs macOS 12, OSAllocatedUnfairLock needs macOS 13.
         .macOS(.v13),
     ],

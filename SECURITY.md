@@ -2,8 +2,12 @@
 
 ## Supported versions
 
-DMCore has no release yet. From the first release on, security fixes are made for the latest
-release.
+Security fixes are made for the latest release.
+
+| Version | Supported |
+|---|---|
+| 1.0.x | yes |
+| earlier | no |
 
 ## Reporting a vulnerability
 
