@@ -338,6 +338,8 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_26.6.app
       - name: Consumer fixture and rejected shapes on the Mac
         run: Scripts/check-consumer.sh
+      # Here DMCore is a dependency, whose warnings Xcode suppresses, and it refuses to suppress
+      # them and to treat them as errors at once. So the suppression is switched off.
       - name: Consumer fixture for the iOS Simulator
         working-directory: Fixtures/Consumer
         run: |
@@ -345,7 +347,8 @@ jobs:
             -scheme Consumer \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+            SWIFT_SUPPRESS_WARNINGS=NO
       - name: Consumer fixture for the watchOS Simulator
         working-directory: Fixtures/Consumer
         run: |
@@ -353,4 +356,5 @@ jobs:
             -scheme Consumer \
             -destination 'generic/platform=watchOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+            SWIFT_SUPPRESS_WARNINGS=NO
