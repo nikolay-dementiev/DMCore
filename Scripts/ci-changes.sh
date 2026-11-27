@@ -104,14 +104,19 @@ expect() {
     fi
 }
 
-# The jobs of a workflow file, one name per line.
+# The jobs of a workflow file, one name per line. Every key one level under jobs: counts, however it
+# is spelled, so that a spelling nobody expected is reported as a job that no group lists.
 job_names() {
-    awk '/^jobs:/ { in_jobs = 1; next } in_jobs && /^  [a-z][a-z-]*:$/ { sub(/^  /, ""); sub(/:$/, ""); print }' "$1"
+    awk '/^jobs:/ { in_jobs = 1; next } /^[^ #]/ { in_jobs = 0 }
+        in_jobs && /^  [^ #]/ { sub(/^  /, ""); sub(/:([ \t].*)?$/, ""); print }' "$1"
 }
 
 # The lines of one job of a workflow file, without the line that names it.
 job_block() {
-    awk -v job="$2" '$0 == "  " job ":" { on = 1; next } on && /^  [a-z][a-z-]*:$/ { exit } on { print }' "$1"
+    awk -v job="$2" '/^jobs:/ { in_jobs = 1; next }
+        on && (/^[^ #]/ || /^  [^ #]/) { exit }
+        in_jobs && index($0, "  " job ":") == 1 { on = 1; next }
+        on { print }' "$1"
 }
 
 # A job key that the two readers miss would escape the table, and its lines would count for the job
