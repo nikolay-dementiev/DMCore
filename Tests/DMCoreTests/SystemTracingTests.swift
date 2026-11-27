@@ -1,9 +1,10 @@
+import Dispatch
 import DMCore
 import DMCoreTesting
 import XCTest
 
-/// A signpost cannot be read back in a unit test, so these tests stop at the token. The
-/// documentation of the library says how to see the signposts with `xctrace`.
+/// A signpost cannot be read back in a unit test, so these tests stop at the token.
+/// `Scripts/check-signposts.sh` records the signposts with `xctrace` and compares them.
 final class SystemTracingTests: XCTestCase {
     func test_beginInterval_categoryThatRecords_returnsATokenWithSomethingToEnd() {
         let sut = makeSUT()
@@ -26,7 +27,7 @@ final class SystemTracingTests: XCTestCase {
         XCTAssertNil(interval.handle, "nothing is built while the category is off")
     }
 
-    func test_everyDetail_categoryThatRecords_beginsEndsAndEmits() {
+    func test_everyDetail_categoryThatRecords_returnsATokenWithSomethingToEnd() {
         let sut = makeSUT()
 
         for detail in [TraceDetail.none, .number(.min), .label("done")] {
@@ -50,20 +51,21 @@ final class SystemTracingTests: XCTestCase {
         XCTAssertNotNil(interval.handle)
     }
 
-    func test_endInterval_sameTokenFromManyTasksAtOnce_doesNotStopTheProcess() async {
+    func test_endInterval_sameTokenFromManyThreadsAtOnce_doesNotStopTheProcess() {
         let sut = makeSUT()
 
-        for _ in 0..<50 {
-            let interval = sut.beginInterval("work", .none)
-            await withTaskGroup(of: Void.self) { group in
-                for _ in 0..<8 {
-                    group.addTask { sut.endInterval(interval, .none) }
-                }
+        let intervals = (0..<20_000).map { _ in sut.beginInterval("work", .none) }
+
+        // Every thread walks the same tokens. The ones behind find nothing to end and catch up, so
+        // the threads keep meeting inside one end.
+        DispatchQueue.concurrentPerform(iterations: 8) { _ in
+            for interval in intervals {
+                sut.endInterval(interval, .none)
             }
         }
     }
 
-    func test_endInterval_tokenFromAnotherTracing_doesNothing() {
+    func test_endInterval_tokenFromAnotherType_doesNotStopTheProcess() {
         let sut = makeSUT()
 
         sut.endInterval(TracingSpy().beginInterval("work", .none), .none)
