@@ -1,5 +1,5 @@
 // expect: 'TraceInterval' initializer is inaccessible due to 'package' protection level
-// Only DMCore creates the token of an interval, so no other package can conform to Tracing.
+// Only DMCore creates the token of an interval: a conformer of another package cannot make one.
 package import DMCore
 
 struct OutsideTracing: Tracing {

@@ -17,8 +17,10 @@ three classes:
 - **additive**: new declarations only, and nothing a consumer must do.
 - **breaking**: anything else.
 
-The rule is strict and has no carve-out: every change of observable behaviour is breaking. That
-includes a crash that stops happening and a behaviour brought back in line with the documentation.
+The rule is strict: every change of observable behaviour is breaking. That includes a crash that
+stops happening and a behaviour brought back in line with the documentation. One thing is a
+diagnostic and outside the contract: how a signpost of `SystemTracing` reads in a recording, that
+is its fixed name and the form of its message.
 
 | Change | Class |
 |---|---|
@@ -66,8 +68,10 @@ script sees.
 - **Concurrency is checked by the compiler.** `DMCore` declares no `@unchecked Sendable`: state
   that threads share is behind a lock that the compiler knows to be safe, such as
   `OSAllocatedUnfairLock`, or in an actor. The review checks this.
-- **One module conforms to `Tracing`.** Only `DMCore` creates a `TraceInterval`, so an adapter of
-  the interface is added here, and a new requirement cannot break a conformer elsewhere.
+- **Only `DMCore` creates a `TraceInterval`.** A conformer of `Tracing` outside this package can
+  only hand on the token of a value of `DMCore`, so an adapter that keeps its own state for an
+  interval is added here. Such conformers can exist, so a new requirement without a default
+  implementation stays breaking.
 - **Layers.** Inside `Sources/DMCore`, `Domain/` holds the interfaces and plain values and imports
   nothing, and `Adapters/` holds the code that talks to a system framework. Dependencies point
   inward: a Domain type never names an adapter.

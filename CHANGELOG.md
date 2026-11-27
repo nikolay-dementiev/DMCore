@@ -16,8 +16,9 @@ The first release: the tracing kit of the family.
   crosses threads and suspension points.
 - Calls of `Tracing` without a detail, and `measure`, which runs synchronous or asynchronous work
   inside an interval.
-- `SystemTracing`, which records signposts of the system under a subsystem and a category, and ends
-  each interval once.
+- `SystemTracing`, which records signposts of the system under a subsystem and a category, with the
+  name and the detail in the message of each. It ends an interval once, and only for the subsystem
+  and category that began it.
 - `NoTracing`, which records nothing.
 - `TracingSpy`, in `DMCoreTesting`, which records every call in order, from any thread, for tests.
 - Documentation of the naming rule, of the privacy rule and of how to see the signposts.

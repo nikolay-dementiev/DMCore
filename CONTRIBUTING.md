@@ -43,7 +43,7 @@ The checks are scripts in `Scripts/`, and CI runs them as you do, except `check-
 CI replaces by the command it forwards to,
 `swift run --quiet --package-path Tools devkit check-wrappers`, so that a fault of the script cannot
 turn the check into another one. CI also builds the documentation, with the warnings of DocC as
-errors.
+errors. One script, `Scripts/check-signposts.sh`, CI does not run: see [Tests](#tests).
 
 | Script | What it checks |
 |---|---|
@@ -65,13 +65,15 @@ and test the code for each platform and toolchain: `floor`, `test`, `ios`, `watc
 weekly run, a manual run and a release start every job. A push to `main` is judged by its own changes: after a push whose run failed, a
 later push of documents alone can be green although the failure is still there.
 
-The checks run code that the branch contains: Swift Package Manager evaluates `Package.swift` and
-`Tools/Package.swift`, and `devkit.conf` is shell code that runs with your rights. Before you run the
-checks on someone else's branch, read what that branch changes in those files and in `Scripts/`.
+The checks run code that the branch contains: Swift Package Manager evaluates `Package.swift`,
+`Tools/Package.swift` and `Fixtures/Consumer/Package.swift`, `devkit.conf` is shell code that runs
+with your rights, and `Scripts/check-signposts.sh` runs the program of `Fixtures/Signposts`. Before
+you run the checks on someone else's branch, read what that branch changes in those files and in
+`Scripts/`.
 
 ## The tools
 
-All the scripts but `ci-changes.sh` and `check-consumer.sh` are wrappers of
+All the scripts but `ci-changes.sh`, `check-consumer.sh` and `check-signposts.sh` are wrappers of
 [DMDevKit](https://github.com/nikolay-dementiev/DMDevKit), the tooling of the DM libraries. Each
 goes to the repository root, which `devkit` finds with git, so run them in a clone, and runs
 `swift run --quiet --package-path Tools devkit <command>` with the arguments it was given.
@@ -96,9 +98,10 @@ goes to the repository root, which `devkit` finds with git, so run them in a clo
 - A test must be able to fail. Show it red against the code before your change, or, for a test of
   behaviour that already holds, with a temporary change of the code it covers.
 - A fix starts with a test that reproduces the defect.
-- No test reads signposts back from the system. For a change of `SystemTracing`, record them with
-  `xctrace` as [Seeing the signposts](Sources/DMCore/DMCore.docc/SeeingSignposts.md) describes,
-  and put what you saw in the pull request.
+- No test reads signposts back from the system. After a change of `SystemTracing`, run
+  `Scripts/check-signposts.sh`, which records them with `xctrace` and compares them with
+  `Fixtures/Signposts/expected.txt`, and put its output in the pull request.
+  [Seeing the signposts](Sources/DMCore/DMCore.docc/SeeingSignposts.md) says what a signpost holds.
 
 ## Commits and pull requests
 

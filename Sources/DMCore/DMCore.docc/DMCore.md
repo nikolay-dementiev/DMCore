@@ -40,6 +40,8 @@ An interval may end on another thread, or after an `await`: keep the ``TraceInte
 - A name is a `StaticString` written in the library: a short word for what happens, such as `load`.
 - The library passes ``SystemTracing`` a subsystem that names the library, usually its module name,
   and one category for its signposts. A library documents both, because a host filters by them.
+- In a recording, a name is the first part of the message of its signpost, and the signpost names
+  are the same for every library: see <doc:SeeingSignposts>.
 - The names of intervals and events are diagnostics. A library may change them in a minor release.
 
 ## The privacy rule

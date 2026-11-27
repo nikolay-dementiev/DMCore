@@ -38,7 +38,8 @@ public enum TraceDetail: Sendable, Equatable {
 
 /// The token of an open interval. It crosses threads and suspension points.
 ///
-/// Only DMCore creates one, so only the types of this package conform to ``Tracing``.
+/// Only DMCore creates one. A conformer of ``Tracing`` outside this package returns the token
+/// that a value of DMCore made for it.
 public struct TraceInterval: Sendable {
     package let name: StaticString
     /// What the tracing value that began the interval needs to end it. Nil when nothing listened.
@@ -75,7 +76,8 @@ extension Tracing {
     }
 
     /// Runs asynchronous work inside an interval and returns its result. The interval ends when
-    /// the work returns or throws. The work runs on the actor of the caller.
+    /// the work returns or throws. This method adds no isolation of its own: a closure that is
+    /// isolated to the actor of the caller runs there.
     public func measure<T>(
         _ name: StaticString,
         isolation: isolated (any Actor)? = #isolation,
