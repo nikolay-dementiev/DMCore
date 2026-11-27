@@ -14,7 +14,8 @@ the rules of the repository and states none of its own. Report each finding in t
 - A global mutable variable, a singleton or an Objective-C class.
   (ENGINEERING.md, "No shared mutable state.")
 - A way to stop the host that no lint rule sees, such as a subscript or a range that can be out of
-  bounds, an integer operation that can overflow, or a division by zero.
+  bounds, an integer operation that can overflow, a division by zero, or a function that stops the
+  process passed as a value instead of called.
   (ENGINEERING.md, "The library never stops its host.")
 - A change of observable behaviour. Hand it to the lane public-api-and-documentation, which owns
   its class. (ENGINEERING.md, "every change of observable behaviour is breaking")

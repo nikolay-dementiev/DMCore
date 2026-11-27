@@ -46,7 +46,10 @@ custom_rules:
     # The two library modules, by name: a path that merely holds a Sources folder, such as a
     # fixture package or another module, is not the library.
     included: ".*/Sources/(DMCore|DMCoreTesting)/.*\\.swift"
-    regex: '\b(fatalError|preconditionFailure|assertionFailure|precondition|assert|dispatchPrecondition|abort|exit)\s*\('
+    # A call of a function that traps, exits or signals, and the isolation checks that trap, which
+    # may take a trailing closure and no parenthesis. A name used without a call, such as exit
+    # passed as a value, and a name in backticks are not seen.
+    regex: '\b(?:(?:fatalError|preconditionFailure|assertionFailure|precondition|assert|dispatchPrecondition|abort|exit|_exit|_Exit|raise|kill|pthread_kill)\s*\(|(?:preconditionIsolated|assertIsolated|assumeIsolated)\b)'
     match_kinds:
       - identifier
     message: "A library never terminates its host. Report the failure to the caller."

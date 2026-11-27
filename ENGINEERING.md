@@ -68,11 +68,13 @@ the first public declaration, and CI compares the interface with it from then on
   `domain_no_imports` and `no_reexport`. The first rule covers both library folders with one list,
   so a review keeps `DMCore` itself to `os`.
 - **The library never stops its host.** No `fatalError`, `preconditionFailure`,
-  `assertionFailure`, `precondition`, `assert`, `dispatchPrecondition`, `abort` or `exit`, no force
-  unwrap, no `try!` and no `as!`. `Scripts/lint.sh` enforces this: the custom rule
-  `no_process_termination` over the two library folders, and SwiftLint's `force_unwrapping`,
-  `force_try` and `force_cast`. The force unwrap rule has no exemption for a call with a literal
-  argument.
+  `assertionFailure`, `precondition`, `assert`, `dispatchPrecondition`, `abort`, `exit`, `_exit`,
+  `_Exit`, `raise`, `kill` or `pthread_kill`, no `assumeIsolated`, `preconditionIsolated` or
+  `assertIsolated`, no force unwrap, no `try!` and no `as!`. `Scripts/lint.sh` enforces this: the
+  custom rule `no_process_termination` over the two library folders, and SwiftLint's
+  `force_unwrapping`, `force_try` and `force_cast`. The custom rule sees calls: a name used without
+  one, or written in backticks, is left to the review. The force unwrap rule has no exemption for a
+  call with a literal argument.
 - **The rules are proved.** A rule that never matches reports nothing, so
   `Scripts/check-lint-contract.sh` lints the fixtures of `Fixtures/Lint` and proves that the rules
   named in `devkit.conf` fire on the lines that expect them and on no other line. It lints the
