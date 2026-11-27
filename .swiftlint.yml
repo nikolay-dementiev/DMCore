@@ -56,18 +56,25 @@ custom_rules:
     # The two library folders only. The pattern is matched against the absolute path, so a checkout
     # inside a folder that is itself named Sources/DMCore would apply it to everything.
     included: ".*/Sources/(DMCore|DMCoreTesting)/.*\\.swift"
-    # Any attribute, access level and import kind; a second import after a semicolon; a submodule
-    # of os is allowed. Comments and strings never match. Only spaces and tabs may come before the
-    # import, so that a blank line is not swallowed and the diagnostic lands on the line of the
-    # import. An import that follows a block comment on the same line is not seen.
-    regex: '(?:^|;)[ \t]*(@\w+(\([^)]*\))?\s+)*((public|package|internal|fileprivate|private)\s+)?import\s+(?:(?:struct|class|enum|protocol|typealias|func|var|let)\s+)?+(?!(?:os|DMCore)\b)\w+'
-    match_kinds: [keyword, identifier, attribute.builtin, attribute.id]
+    # Every import keyword that is not followed, on its own line, by os or DMCore, with or without
+    # an import kind before the name; a submodule of os is allowed. So a comment or backticks between
+    # the keyword and the name are reported, and so is a permitted module written on the next line.
+    # Comments and strings never match.
+    regex: '\bimport\b(?![ \t]+(?:(?:struct|class|enum|protocol|typealias|func|var|let)[ \t]+)?(?:os|DMCore)\b)'
+    match_kinds: [keyword]
     message: "The library imports os only, and DMCoreTesting also DMCore: no Foundation, no UI and no third party."
     severity: error
   domain_no_imports:
     name: "Domain imports nothing"
     included: ".*/Sources/DMCore/Domain/.*\\.swift"
-    regex: '(?:^|;)[ \t]*(@\w+(\([^)]*\))?\s+)*((public|package|internal|fileprivate|private)\s+)?import\s+\w+'
-    match_kinds: [keyword, identifier, attribute.builtin, attribute.id]
+    regex: '\bimport\b'
+    match_kinds: [keyword]
     message: "The Domain folder imports no module: system frameworks belong to the Adapters folder."
+    severity: error
+  no_reexport:
+    name: "No re-exported import"
+    included: ".*/Sources/(DMCore|DMCoreTesting)/.*\\.swift"
+    regex: '@_exported\b'
+    match_kinds: [attribute.builtin]
+    message: "No import is re-exported: it would reach every file of the module, Domain included, and every consumer."
     severity: error

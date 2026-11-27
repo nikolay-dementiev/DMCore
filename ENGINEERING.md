@@ -62,9 +62,11 @@ the first public declaration, and CI compares the interface with it from then on
 - **Layers.** Inside `Sources/DMCore`, `Domain/` holds the interfaces and plain values and imports
   nothing, and `Adapters/` holds the code that talks to a system framework. The folders arrive with
   their first files. Dependencies point inward: a Domain type never names an adapter.
-- **Imports.** The library imports `os` only, and `DMCoreTesting` also `DMCore`. `Scripts/lint.sh`
-  enforces this with the custom rules `library_imports` and `domain_no_imports`. The first rule
-  covers both library folders with one list, so a review keeps `DMCore` itself to `os`.
+- **Imports.** The library imports `os` only, and `DMCoreTesting` also `DMCore`. No import is
+  re-exported with `@_exported`: it would reach every file of the module, `Domain/` included, and
+  every consumer. `Scripts/lint.sh` enforces this with the custom rules `library_imports`,
+  `domain_no_imports` and `no_reexport`. The first rule covers both library folders with one list,
+  so a review keeps `DMCore` itself to `os`.
 - **The library never stops its host.** No `fatalError`, `preconditionFailure`,
   `assertionFailure`, `precondition`, `assert`, `dispatchPrecondition`, `abort` or `exit`, no force
   unwrap, no `try!` and no `as!`. `Scripts/lint.sh` enforces this: the custom rule

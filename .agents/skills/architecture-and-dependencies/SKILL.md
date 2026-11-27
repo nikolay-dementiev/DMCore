@@ -20,8 +20,7 @@ format of [Documentation/Review/README.md](../../../Documentation/Review/README.
   `ExistentialAny`, or a test framework other than XCTest.
   (ENGINEERING.md, "Toolchain and platforms")
 - An import in `DMCore` of any module but `os`. The lint rule `library_imports` also lets the name
-  `DMCore` pass there, and it does not see an import that follows a block comment on the same line.
-  (ENGINEERING.md, "Imports.")
+  `DMCore` pass there. (ENGINEERING.md, "Imports.")
 - A type in `Domain/` that names an adapter, or code in the wrong folder. No lint rule sees which
   type names which. (ENGINEERING.md, "Layers.")
 - A lint rule added or widened without a fixture that proves that it fires on the lines that expect
