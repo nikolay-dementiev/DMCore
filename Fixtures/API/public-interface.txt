@@ -1,0 +1,32 @@
+extension DMCore.Tracing {
+  public func beginInterval(_ name: Swift.StaticString) -> DMCore.TraceInterval
+  public func endInterval(_ interval: DMCore.TraceInterval)
+  public func emitEvent(_ name: Swift.StaticString)
+  public func measure<T>(_ name: Swift.StaticString, _ work: () throws -> T) rethrows -> T
+  public func measure<T>(_ name: Swift.StaticString, isolation: isolated (any _Concurrency.Actor)? = #isolation, _ work: () async throws -> T) async rethrows -> T
+}
+public enum TraceDetail : Swift.Sendable, Swift.Equatable {
+  case none
+  case number(Swift.Int64)
+  case label(Swift.StaticString)
+  public static func == (lhs: DMCore.TraceDetail, rhs: DMCore.TraceDetail) -> Swift.Bool
+}
+public protocol Tracing : Swift.Sendable {
+  func beginInterval(_ name: Swift.StaticString, _ detail: DMCore.TraceDetail) -> DMCore.TraceInterval
+  func endInterval(_ interval: DMCore.TraceInterval, _ detail: DMCore.TraceDetail)
+  func emitEvent(_ name: Swift.StaticString, _ detail: DMCore.TraceDetail)
+}
+public struct NoTracing : DMCore.Tracing {
+  public init()
+  public func beginInterval(_ name: Swift.StaticString, _ detail: DMCore.TraceDetail) -> DMCore.TraceInterval
+  public func endInterval(_ interval: DMCore.TraceInterval, _ detail: DMCore.TraceDetail)
+  public func emitEvent(_ name: Swift.StaticString, _ detail: DMCore.TraceDetail)
+}
+public struct SystemTracing : DMCore.Tracing {
+  public init(subsystem: Swift.String, category: Swift.String)
+  public func beginInterval(_ name: Swift.StaticString, _ detail: DMCore.TraceDetail) -> DMCore.TraceInterval
+  public func endInterval(_ interval: DMCore.TraceInterval, _ detail: DMCore.TraceDetail)
+  public func emitEvent(_ name: Swift.StaticString, _ detail: DMCore.TraceDetail)
+}
+public struct TraceInterval : Swift.Sendable {
+}
