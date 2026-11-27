@@ -21,7 +21,37 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Decides from the changed paths which jobs a pull request or a push to main needs
+  # (Scripts/ci-changes.sh). It runs on Linux, so it takes no macOS slot. The clone has its whole
+  # history: the diff against the base needs the merge base or the commit main had before the push,
+  # and a diff that cannot be made runs every job. The schedule and a manual run run every job.
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      light: ${{ steps.decide.outputs.light }}
+      heavy: ${{ steps.decide.outputs.heavy }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check the filter
+        run: Scripts/ci-changes.sh --self-test
+      - name: Decide which jobs run
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          # A pull request is diffed from its base, a push from the commit main had before it.
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          REF: ${{ github.ref }}
+        run: |
+          set -o pipefail
+          Scripts/ci-changes.sh "$EVENT" "$BASE" "$REF" | tee -a "$GITHUB_OUTPUT"
+
   lint:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.light != 'skip' }}
     runs-on: macos-26
     timeout-minutes: 15
     steps:
@@ -46,6 +76,8 @@ jobs:
         run: swift run --quiet --package-path Tools devkit check-wrappers
 
   floor:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
     # The oldest toolchain the manifest promises: swift-tools-version 6.0 is Xcode 16.0 to 16.2.
     runs-on: macos-15
     timeout-minutes: 15
@@ -69,6 +101,8 @@ jobs:
   # Every platform the manifest declares, built with a new toolchain. The package has no test yet,
   # so these are builds: a test job that ran no test would pass whatever the code did.
   platforms:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.heavy != 'skip' }}
     runs-on: macos-26
     timeout-minutes: 20
     steps:
