@@ -84,6 +84,18 @@ final class TracingHelpersTests: XCTestCase {
                        "one interval around the work")
     }
 
+    // A compile-time check too: the compiler lets a value that is not Sendable leave the work and
+    // reach a caller on an actor.
+    func test_measureAsync_workThatMakesAValueThatIsNotSendable_handsItToTheCaller() async {
+        let sut = makeSUT()
+
+        let count = await Owner().countOnNewCounter(sut)
+
+        XCTAssertEqual(count, 1, "the caller changed the value that the work made")
+        XCTAssertEqual(sut.calls, [.begin("make", .none, interval: 0), .end("make", .none, interval: 0)],
+                       "one interval around the work")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> TracingSpy {
@@ -110,5 +122,11 @@ private actor Owner {
             counter.value += 1
         }
         return counter.value
+    }
+
+    func countOnNewCounter(_ tracing: any Tracing) async -> Int {
+        let made = await tracing.measure("make") { () async -> Counter in Counter() }
+        made.value += 1
+        return made.value
     }
 }
