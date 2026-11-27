@@ -15,9 +15,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  # A new push to a pull request supersedes its older run. Runs on main are never
-  # cancelled: a merge, the weekly run and a manual run each keep their own record.
+  # The runs of a pull request share a group, so a new push supersedes the older run. Every other
+  # run, a merge, the weekly run or a manual run, has a group of its own: a group holds one pending
+  # run only, and a newer run would cancel it.
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
