@@ -78,10 +78,13 @@ extension Tracing {
     /// Runs asynchronous work inside an interval and returns its result. The interval ends when
     /// the work returns or throws. This method adds no isolation of its own: a closure that is
     /// isolated to the actor of the caller runs there.
+    ///
+    /// The result of the work is `sending`: a value of a `Sendable` type, or one that nothing else
+    /// holds, such as a value that the work makes. An actor cannot hand out a value that it keeps.
     public func measure<T>(
         _ name: StaticString,
         isolation: isolated (any Actor)? = #isolation,
-        _ work: () async throws -> T
+        _ work: () async throws -> sending T
     ) async rethrows -> T {
         let interval = beginInterval(name)
         defer { endInterval(interval) }

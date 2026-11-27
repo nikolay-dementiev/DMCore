@@ -3,7 +3,7 @@ extension DMCore.Tracing {
   public func endInterval(_ interval: DMCore.TraceInterval)
   public func emitEvent(_ name: Swift.StaticString)
   public func measure<T>(_ name: Swift.StaticString, _ work: () throws -> T) rethrows -> T
-  public func measure<T>(_ name: Swift.StaticString, isolation: isolated (any _Concurrency.Actor)? = #isolation, _ work: () async throws -> T) async rethrows -> T
+  public func measure<T>(_ name: Swift.StaticString, isolation: isolated (any _Concurrency.Actor)? = #isolation, _ work: () async throws -> sending T) async rethrows -> T
 }
 public enum TraceDetail : Swift.Sendable, Swift.Equatable {
   case none
