@@ -284,3 +284,70 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_26.6.app
       - name: Test with the Thread Sanitizer
         run: swift test --sanitize=thread -Xswiftc -warnings-as-errors
+
+  api:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.light != 'skip' }}
+    # The interface text depends on the compiler: this job uses one pinned Xcode.
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      - name: Check the normalisation of the interface
+        run: Scripts/check-api.sh --self-test
+      - name: Public interface against the baseline
+        run: Scripts/check-api.sh
+
+  docs:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.light != 'skip' }}
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      # A broken symbol link is a warning to DocC and an error here.
+      - name: Build the documentation
+        run: |
+          xcodebuild docbuild \
+            -scheme DMCore-Package \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            OTHER_DOCC_FLAGS="--warnings-as-errors"
+
+  consumer:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.light != 'skip' }}
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      - name: Consumer fixture and rejected shapes on the Mac
+        run: Scripts/check-consumer.sh
+      - name: Consumer fixture for the iOS Simulator
+        working-directory: Fixtures/Consumer
+        run: |
+          xcodebuild build \
+            -scheme Consumer \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+      - name: Consumer fixture for the watchOS Simulator
+        working-directory: Fixtures/Consumer
+        run: |
+          xcodebuild build \
+            -scheme Consumer \
+            -destination 'generic/platform=watchOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
