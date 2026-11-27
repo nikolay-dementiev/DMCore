@@ -126,8 +126,8 @@ jobs:
             -scheme DMCore-Package \
             -destination 'generic/platform=watchOS Simulator' \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
-      # Only the two device builds compile code that a Simulator build leaves out. They are Release
-      # builds, so code that only Release compiles is built too.
+      # Only the two device builds compile the device slices. They are Release builds, so code that
+      # only Release compiles is built too.
       - name: Build for the iOS device SDK
         run: |
           xcodebuild build \
