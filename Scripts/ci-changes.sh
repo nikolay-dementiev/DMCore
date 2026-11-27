@@ -104,11 +104,47 @@ expect() {
     fi
 }
 
+# The jobs of a workflow file, one name per line.
+job_names() {
+    awk '/^jobs:/ { in_jobs = 1; next } in_jobs && /^  [a-z][a-z-]*:$/ { sub(/^  /, ""); sub(/:$/, ""); print }' "$1"
+}
+
+# The lines of one job of a workflow file, without the line that names it.
+job_block() {
+    awk -v job="$2" '$0 == "  " job ":" { on = 1; next } on && /^  [a-z][a-z-]*:$/ { exit } on { print }' "$1"
+}
+
+# A job key that the two readers miss would escape the table, and its lines would count for the job
+# above it. So they are proved on every shape of key that a workflow accepts.
+check_job_reading() {
+    local file got
+    file="$(mktemp)"
+    printf '%s\n' 'on:' '  push:' 'jobs:' '  # a comment between jobs' \
+        '  plain:' '    runs-on: a' '  api_check:' '    runs-on: b' '  ios18:' '    runs-on: c' \
+        '  Docs:' '    runs-on: d' '  commented: # why' '    runs-on: e' > "$file"
+    got="$(job_names "$file" | tr '\n' ' ')"
+    if [ "$got" != "plain api_check ios18 Docs commented " ]; then
+        echo "ci-changes self-test: the job names of a fixture: got '$got'" >&2
+        failures=$((failures + 1))
+    fi
+    got="$(job_block "$file" plain)"
+    if [ "$got" != "    runs-on: a" ]; then
+        echo "ci-changes self-test: the lines of a job before another one: got '$got'" >&2
+        failures=$((failures + 1))
+    fi
+    got="$(job_block "$file" commented)"
+    if [ "$got" != "    runs-on: e" ]; then
+        echo "ci-changes self-test: the lines of a job with a comment on its key: got '$got'" >&2
+        failures=$((failures + 1))
+    fi
+    rm -f "$file"
+}
+
 # Every job of ci.yml is in exactly one group and asks for its group's answer, so that a job added
 # later cannot run unfiltered by accident.
 check_job_table() {
     local workflow="$ROOT/.github/workflows/ci.yml" job group block names
-    names="$(awk '/^jobs:/ { in_jobs = 1; next } in_jobs && /^  [a-z][a-z-]*:$/ { sub(/^  /, ""); sub(/:$/, ""); print }' "$workflow" | tr '\n' ' ')"
+    names="$(job_names "$workflow" | tr '\n' ' ')"
     for job in $names; do
         [ "$job" = changes ] && continue
         group=""
@@ -119,7 +155,7 @@ check_job_table() {
             failures=$((failures + 1))
             continue
         fi
-        block="$(awk -v job="$job" '$0 == "  " job ":" { on = 1; next } on && /^  [a-z][a-z-]*:$/ { exit } on { print }' "$workflow")"
+        block="$(job_block "$workflow" "$job")"
         if ! printf '%s\n' "$block" | grep -qF "if: \${{ !cancelled() && needs.changes.outputs.$group != 'skip' }}"; then
             echo "ci-changes self-test: job '$job' does not carry if: \${{ !cancelled() && needs.changes.outputs.$group != 'skip' }}" >&2
             failures=$((failures + 1))
@@ -210,6 +246,7 @@ self_test() {
     expect "a push of a release tag runs every job for the inert file" push ".coderabbit.yaml" "$all" refs/tags/1.2.0
     expect "a push to another branch runs every job" push "README.md" "$all" refs/heads/other
     expect "a push with no ref runs every job" push "README.md" "$all" ""
+    check_job_reading
     check_job_table
     check_real_diff
     if [ "$failures" -ne 0 ]; then
