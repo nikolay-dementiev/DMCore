@@ -5,7 +5,7 @@
 # Builds Fixtures/Consumer, a package that uses DMCore as a library of the family does, for the Mac
 # with warnings as errors. Then it adds each file of Fixtures/Consumer/Rejected, one at a time and
 # in a scratch copy, to the target that depends on DMCore alone, and requires that build to fail
-# with the error the first line of the file names.
+# with an error line that holds one of the texts of the file's `// expect: ` lines.
 #
 # Exit codes: 0 everything holds; 1 a rejected shape compiled or failed in another way; any other
 # status, a build that should pass did not, or the check could not run.
@@ -17,7 +17,7 @@ FIXTURE="$ROOT/Fixtures/Consumer"
 
 echo "check-consumer: building the fixture"
 # The build folder is outside Fixtures, which the linter reads.
-swift build --package-path "$FIXTURE" --scratch-path "$ROOT/.build/consumer" -Xswiftc -warnings-as-errors
+swift build --package-path "$FIXTURE" --scratch-path "$ROOT/.build/consumer" -Xswiftc -warnings-as-errors || exit 2
 
 shapes=("$FIXTURE"/Rejected/*.swift.txt)
 if [ ! -f "${shapes[0]}" ]; then
@@ -46,21 +46,22 @@ fi
 failures=0
 for shape in "${shapes[@]}"; do
     name="$(basename "$shape" .swift.txt)"
-    expected="$(sed -n '1s|^// expect: ||p' "$shape")"
-    if [ -z "$expected" ]; then
-        echo "check-consumer: the first line of $name does not name the expected error" >&2
+    sed -n 's|^// expect: ||p' "$shape" > "$scratch/expected"
+    # An empty text would be found in every line.
+    if [ ! -s "$scratch/expected" ] || grep -qx '' "$scratch/expected"; then
+        echo "check-consumer: $name has no expect line, or an empty one" >&2
         exit 2
     fi
     cp "$shape" "$scratch/Sources/Consumer/Rejected.swift"
     if build_copy; then
         echo "check-consumer: $name compiled, and it must not" >&2
         failures=$((failures + 1))
-    elif ! grep -qF "error: $expected" "$scratch/build.log"; then
-        grep -E 'error:' "$scratch/build.log" >&2 || cat "$scratch/build.log" >&2
-        echo "check-consumer: $name failed without the error '$expected'" >&2
+    elif ! found="$(grep -F 'error:' "$scratch/build.log" | grep -oF -f "$scratch/expected")"; then
+        grep -F 'error:' "$scratch/build.log" >&2 || cat "$scratch/build.log" >&2
+        echo "check-consumer: $name failed without an expected error" >&2
         failures=$((failures + 1))
     else
-        echo "check-consumer: $name is rejected: $expected"
+        echo "check-consumer: $name is rejected: ${found%%$'\n'*}"
     fi
     rm "$scratch/Sources/Consumer/Rejected.swift"
 done

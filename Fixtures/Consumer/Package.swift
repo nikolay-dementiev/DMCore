@@ -14,7 +14,8 @@ let package = Package(
         .package(name: "DMCore", path: "../..")
     ],
     targets: [
-        // A library. It depends on DMCore alone, so no test double can reach it.
+        // A library. It depends on DMCore alone: the rejected shapes check that it reaches no test
+        // double.
         .target(
             name: "Consumer",
             dependencies: [.product(name: "DMCore", package: "DMCore")]
