@@ -1,0 +1,18 @@
+// Linted as a file of the Domain folder: the library may import os and DMCore, the Domain folder
+// imports nothing, so only domain_no_imports reports these lines.
+import os // expect: domain_no_imports
+public import os // expect: domain_no_imports
+package import os // expect: domain_no_imports
+internal import os // expect: domain_no_imports
+import os.log // expect: domain_no_imports
+import func os.os_log // expect: domain_no_imports
+@preconcurrency import os // expect: domain_no_imports
+@_exported import os // expect: domain_no_imports
+import DMCore // expect: domain_no_imports
+package import DMCore // expect: domain_no_imports
+public import DMCore // expect: domain_no_imports
+internal import DMCore // expect: domain_no_imports
+@_exported import DMCore // expect: domain_no_imports
+#if canImport(os)
+import os // expect: domain_no_imports
+#endif

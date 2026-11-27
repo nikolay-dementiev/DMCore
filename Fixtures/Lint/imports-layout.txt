@@ -1,0 +1,7 @@
+import os
+
+import UIKit // expect: library_imports
+let first = 1;
+import UIKit // expect: library_imports
+import os;import UIKit // expect: library_imports
+import UIKit; import SwiftUI // expect: library_imports library_imports
