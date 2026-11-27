@@ -67,14 +67,17 @@ public struct SystemTracing: Tracing {
         private let channel: Channel
         private let state: OSAllocatedUnfairLock<OSSignpostIntervalState?>
 
+        // The two calls of the lock are the unchecked ones, because the SDK of Xcode 16.2 does not
+        // declare the state of an interval Sendable, and later ones do. Only this lock holds the
+        // state, and it hands it out once.
         init(_ state: OSSignpostIntervalState, on channel: Channel) {
             self.channel = channel
-            self.state = OSAllocatedUnfairLock(initialState: state)
+            self.state = OSAllocatedUnfairLock(uncheckedState: state)
         }
 
         func take(on caller: Channel) -> OSSignpostIntervalState? {
             guard caller == channel else { return nil }
-            return state.withLock { state in
+            return state.withLockUnchecked { state in
                 let taken = state
                 state = nil
                 return taken

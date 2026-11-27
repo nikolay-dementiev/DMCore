@@ -67,7 +67,8 @@ script sees.
 - **No shared mutable state.** No global mutable variable, no singleton and no Objective-C class.
 - **Concurrency is checked by the compiler.** `DMCore` declares no `@unchecked Sendable`: state
   that threads share is behind a lock that the compiler knows to be safe, such as
-  `OSAllocatedUnfairLock`, or in an actor. The review checks this.
+  `OSAllocatedUnfairLock`, or in an actor. An unchecked call of such a lock carries a comment that
+  says why it is safe. The review checks this.
 - **Only `DMCore` creates a `TraceInterval`.** A conformer of `Tracing` outside this package can
   only hand on the token of a value of `DMCore`, so an adapter that keeps its own state for an
   interval is added here. Such conformers can exist, so a new requirement without a default
