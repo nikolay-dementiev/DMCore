@@ -99,9 +99,10 @@ script sees.
 - The manifest declares `swift-tools-version: 6.2` and the Swift 6 language mode, so the package
   needs Xcode 26.0 or later. `ExistentialAny` is on in every target.
 - The declared platforms are iOS 17.0, watchOS 10.0 and macOS 13.0.
-- `.github/workflows/ci.yml` is the place that says what CI runs. Every job that compiles uses
-  Xcode 26.6, so no run covers Swift 6.2 itself, the oldest compiler the manifest admits. The tests
-  also run on the iOS Simulator and the watchOS Simulator at 26.5: no run covers iOS 17 or
+- `.github/workflows/ci.yml` is the place that says what CI runs. The jobs that compile use
+  Xcode 26.6, except the iOS 18.6 cell, which uses Xcode 26.3 (Swift 6.2.4) on `macos-15`. No run
+  covers an older compiler of Swift 6.2, which the manifest admits. The tests also run on the iOS
+  Simulator at 26.5 and 18.6 and on the watchOS Simulator at 26.5: no run covers iOS 17 or
   watchOS 10, the oldest versions the manifest declares.
 - XCTest is the test framework. Another one comes only by the maintainer's decision.
 

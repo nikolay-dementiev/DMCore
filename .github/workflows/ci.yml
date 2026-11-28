@@ -139,6 +139,15 @@ jobs:
             xcode: "26.6"
             device: iPhone 17
             os: "26.5"
+            device-build: true
+          # An iOS 18 system: the macos-15 image ships its runtime beside Xcode 26, and the
+          # macos-26 image does not.
+          - name: iOS 18.6
+            runner: macos-15
+            xcode: "26.3"
+            device: iPhone 16
+            os: "18.6"
+            device-build: false
     env:
       XCODE: ${{ matrix.xcode }}
     steps:
@@ -148,7 +157,8 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s "/Applications/Xcode_${XCODE}.app"
       # The udid names the device, not a name and an OS: a hosted image can list a runtime with
-      # no device in it, and the script creates the device then.
+      # no device in it, and the script creates the device then. It comes before the first
+      # xcodebuild, because the script waits until the image lists the runtime.
       - name: Prepare the simulator
         env:
           DEVICE: ${{ matrix.device }}
@@ -156,9 +166,16 @@ jobs:
         run: |
           udid="$(Scripts/prepare-simulator.sh "$DEVICE" "$OS")"
           echo "SIMULATOR=$udid" >> "$GITHUB_ENV"
+      # When a later step finds no destination, this output says what Xcode saw.
+      - name: Show what Xcode offers
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+          xcodebuild -showdestinations -scheme DMCore-Package
       # The tests build the simulator slices in Debug. Only this step builds the device slices,
-      # and in Release, so code that only Release compiles is built too.
+      # and in Release, so code that only Release compiles is built too. One cell does it.
       - name: Build for the iOS device SDK
+        if: ${{ matrix.device-build }}
         run: |
           xcodebuild build \
             -scheme DMCore-Package \

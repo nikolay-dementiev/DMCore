@@ -6,8 +6,9 @@ policy.
 
 ## Build
 
-You need Xcode 26 or later (Swift 6.2). CI runs Xcode 26.6. Build and test on the
-Mac, with warnings as errors, and once more under the Thread Sanitizer:
+You need Xcode 26 or later (Swift 6.2). CI runs Xcode 26.6, and Xcode 26.3 for the tests on
+iOS 18.6. Build and test on the Mac, with warnings as errors, and once more under the Thread
+Sanitizer:
 
 ```bash
 swift test -Xswiftc -warnings-as-errors
